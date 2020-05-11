@@ -1,0 +1,244 @@
+<!--
+	Connor Williams
+	Jeremy
+	Chris Van Essen
+	
+	This program implements a Relational Algebra -> mySQL interpreter, translating Relational Algebra equations to mySQL.
+-->
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=EDGE"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<link rel="stylesheet" href="../HelperFunctions/style.css">
+		<!-- Chrome browser will display response in the form of html page by using above line. -->
+		<script type="text/javascript" src="../HelperFunctions/tableFunctions.js"></script>
+		<style>
+			/* CSS space */
+		</style>
+		<script type="text/javascript">
+			var myOperatorTableId = "myOperatorTable";
+			var OpCols = 3;
+			var OpRows = 2;
+			var inputStr;
+			var state = 0;
+			//Sets cell as input box and applies CSS Class
+			function setCellAsInputBox2(myTableId, x,y, initialValue) 
+			{
+  				var myTable = document.getElementById(myTableId); 
+  				var input = document.createElement("input");
+ 				input.type = "text";
+  				input.className = "arrayCellFormat"; // set the CSS class
+  				input.value = initialValue;
+  				//input.style["width"] = "32px";
+  				//input.onchange = "inputBoxChanged("+x+","+y+")";
+  				//input.onchange = function() {inputBoxChanged(myTableId, x, y)};
+  				var mycell = myTable.rows[y].cells[x];
+				if (mycell.hasChildNodes()) 
+				{
+     				mycell.removeChild(mycell.childNodes[0]);
+  				} 
+  				mycell.appendChild(input);  
+  				input.focus();  
+			}
+			//sets a placeholder (text) in a table cell
+			function setPlaceholder(myTableId, x, y, placeholderText)
+			{
+				var myTable = document.getElementById(myTableId);
+				var mycell = myTable.rows[y].cells[x];
+				mycell.childNodes[0].placeholder = placeholderText;
+			}
+			//Sets cell CSS Class
+			function setCellCSSClass(myTableId, x, y, applyClass)
+			{
+				var myTable = document.getElementById(myTableId);
+				var mycell = myTable.rows[y].cells[x];
+				mycell.className = applyClass;
+			}
+			function setTableCSSClass(myTableId, applyClass)
+			{
+				var myTable = document.getElementById(myTableId);
+				myTable.className = applyClass;
+			}
+			//delay (argument in ms)
+			async function delay(delayInms) 
+			{
+      			return new Promise(resolve  => {
+        		setTimeout(() => {
+          		resolve(2);
+        			}, delayInms);
+      			});
+			}
+			//welcome function
+			function welcome()
+			{
+				//code
+				console.log("welcome()");
+			}
+			function deleteMyTable(myTableId)
+			{
+  				var element = document.getElementById(myTableId);
+  				if(element != null)
+   			element.parentNode.removeChild(element);
+			}
+			function insertOpChar(buttonPressed)
+			{
+				var textBox = document.getElementById("inputExp");
+				switch(buttonPressed)
+				{
+					case 'ρ':
+						textBox.value = textBox.value + 'ρ';
+						break;
+					case 'Χ':
+						textBox.value = textBox.value + 'X';
+						break;
+					case '-':
+						textBox.value = textBox.value + '-';
+						break;
+					case '∪':
+						textBox.value = textBox.value + '∪';
+						break;
+					case '∏':
+						textBox.value = textBox.value + '∏';
+						break;
+					case 'σ':
+						textBox.value = textBox.value + 'σ';
+						break;
+					default:
+						break;
+				}
+			}
+			function parser()
+			{
+				var select = "";
+				var where = "";
+				var join = "";
+				var from = "";
+				
+				//∏[name](employees)
+				//σ(employee=1)(employees)
+				//∏flightNo(σ fromAirportID="GEG"^toAirportID="DCA"^(ecoF are<500_firstF are<500(Flies))
+				//
+				setOutput("SQL Statement Output:");
+				inputStr = document.getElementById("inputExp").value;
+				//exit if there is no input
+				if (inputStr.length <= 0)
+					return;
+				console.log(inputStr);
+				
+				var i = 0;
+				while (i<inputStr.length)
+				{
+      			if (inputStr.charAt(i)=="∏") //in a project statement
+      			{
+						state = 1;
+						i++;
+						i++;
+						while (inputStr.charAt(i)!=']')
+        				{
+							select=select+inputStr.charAt(i);
+							i++;
+						}
+						i++;
+						i++;
+						while(inputStr.charAt(i) != ')')
+						{
+							from = from + inputStr.charAt(i);
+							i++;
+						}  
+						break;
+				   }
+					if (inputStr.charAt(i)==="σ") //in a selection statement
+      			{
+						state = 2;
+						i++;
+						while (inputStr.charAt(i)!=")")
+        				{
+							where=where+inputStr.charAt(i);
+							i++;
+						}
+					}
+					/*if (inputStr.charAt(i)==="(") //in a join statement
+      				{
+						  i++;
+							while (inputStr.charAt(i)!=")")
+        					{
+								join=join+inputStr.charAt(i);
+        						i++;
+        					}
+				    }*/
+				}
+				if (state == 1)
+				{
+					console.log("Select " + select);
+					console.log("From " + from);
+					//document.write("\n");
+					appendOutput("Select " + select);
+					//document.write("\n");
+					appendOutput("From " + from);
+					//document.write("\n");
+
+				}
+				else if (state == 2)
+				{
+					console.log("Select " + select);
+					console.log("From " + from);
+					console.log("Where " + where);
+					appendOutput("Select " + select);
+					//document.write("\n");
+					appendOutput("From " + from);
+					//document.write("\n");
+					appendOutput("Where " + where);
+					//document.write("\n");
+				}
+				
+				//console.log(join);
+				//appendOutput(join);
+				/*if (inputStr.charAt(0) === '∏') //in a project
+				{
+					console.log("project ∏");
+				}
+				*/
+				
+			}	  
+			function setOutput(outputString)
+			{
+				var textbox = document.getElementById("outputExp");
+				textbox.innerHTML = outputString;
+				return;
+			}
+			function appendOutput(outputString)
+			{
+				var textbox = document.getElementById("outputExp");
+				textbox.innerHTML = textbox.innerHTML + outputString;
+				return;
+			}
+		</script>
+	</head>
+	<body onload = "welcome()">
+			<div class="boxed">
+				<h2>Relational Algebra Calculator</h2>
+			<!--&emsp for space ' ' character before a line begins-->
+			
+			</div>
+			
+		<p style="font-size:20px;">
+			Enter Relational Algebra Query to be executed and press "Submit":<br>
+			<div class="inputOpButton-group">
+				<button style="width:50px; height:30px; font-size:20px" title="Project Operation"onclick="insertOpChar('∏')">(∏)</button>
+				<button style="width:50px; height:30px; font-size:20px" title="Select Operation"onclick="insertOpChar('σ')">(σ)</button>
+				<button style="width:50px; height:30px; font-size:20px" title="Union Operation"onclick="insertOpChar('∪')">(∪)</button>
+				<button style="width:50px; height:30px; font-size:20px" title="Set Difference Operation"onclick="insertOpChar('-')">(−)</button>
+				<button style="width:50px; height:30px; font-size:20px" title="Cartesian Product Operation" onclick="insertOpChar('Χ')">(Χ) </button>
+				<button style="width:50px; height:30px; font-size:20px" title="Rename Operation" onclick="insertOpChar('ρ')">(ρ)</button>
+			 </div>
+			 <br>
+			<label for="inputExpression" class="textBox">Input Expression:</label>
+			<input type="text" id="inputExp" name="inputExp" class="textBox"><br><br>
+			<input type="submit" value="Submit" id="Submit" style="font-size:20px; height:35px; width:90px;" title="Submit Button" onclick="parser()"><br><br>
+			<label type="text" id="outputExp" name="outputExp" class="textBox" style="border-color: black; border-style: solid; border-width:1px;">SQL Statement Output:</label><br><br>
+		</p>	
+		<BR>
+	
+</body>
+</html>
